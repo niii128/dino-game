@@ -1,6 +1,6 @@
 # Example file showing a basic pygame "game loop"
 import pygame
-
+import random
 # pygame setup
 #畫布大小
 pygame.init()
@@ -14,6 +14,7 @@ img_dinoduck=[pygame.image.load("DinoDuck1.png"),pygame.image.load("DinoDuck2.pn
 img_birdrun=[pygame.image.load("Bird1.png"),pygame.image.load("Bird2.png")]
 img_dino=pygame.transform.scale(img_dino,(90,90))#原本是(100,100)
 img_bird=pygame.image.load("Bird1.png")
+img_track=pygame.image.load("track.png")
 #設定角色
 dino_rect=img_dino.get_rect()
 dino_rect.x=50#座標
@@ -27,17 +28,23 @@ nowjump=jump
 cactus_rect=img_cactus.get_rect()
 cactus_rect.x=1200#座標
 cactus_rect.y=315
-speed=5
+initspeed=5
+speed=initspeed
 
 bird_rect=img_bird.get_rect()
 bird_rect.x=2400
 bird_rect.y=250
-speed=5
+initspeed=5
+speed=initspeed
 
 #設定分數
 score=0
 highscore=0#最高紀錄
 font=pygame.font.Font(None,36)
+
+#等級
+level=0
+speedlist=[5,6,7,8,9]
 
 clock = pygame.time.Clock()#時鐘
 running = True
@@ -49,6 +56,8 @@ while running:
     # poll for events
     # pygame.QUIT event means the user clicked X to close your window
     score+=1
+    #if score>2000:
+        #speed+=1
     for event in pygame.event.get():
             if event.type == pygame.QUIT:#事件 吧
                 running = False#停止運行
@@ -58,6 +67,7 @@ while running:
                 if event.key==pygame.K_r:
                     score=0
                     cactus_rect.x=1500#老師設2000
+                    bird_rect.x=2000
                     gameover=False
                 if event.key==pygame.K_UP:
                     is_jumping=True
@@ -79,7 +89,8 @@ while running:
                     gameover=False
 
     if not gameover:
-        
+        if score>2000:
+            speed+=1
 
         if is_jumping:
             dino_rect.y-=nowjump
@@ -92,33 +103,49 @@ while running:
         #仙人掌移動
         cactus_rect.x-=speed
         if cactus_rect.x<0:
-            cactus_rect.x=1280
+            cactus_rect.x= random.randint(1280, 3000)
+            
 
         #天上恐龍移動
         bird_rect.x-=speed
         if bird_rect.x<0:
-            bird_rect.x=1280
+            bird_rect.x= random.randint(1280, 2000)
             
         #撞仙人掌
-        if dino_rect.colliderect(cactus_rect):
+        if dino_rect.colliderect(cactus_rect) or dino_rect.colliderect(bird_rect):
             if score>highscore:
                 highscore=score
             gameover=True
 
-        #撞天上恐龍
-        if dino_rect.colliderect(bird_rect):
-            if score>highscore:
-                highscore=score
-            gameover=True
+        
+
+        if score>3000:
+            speed = speedlist[3]
+            level = 3
+        elif score >2000:
+            speed = speedlist[2]
+            level =2
+        elif score >1000:
+            speed = speedlist[1]
+            level = 1
+
+
+
+
+        
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("white")#填滿顏色
+        screen.blit(img_track,(0,370))
 
         score_show=font.render(f"Score:{score}",True,(0,0,0))
         screen.blit(score_show,(10,10))
 
         highscore_show=font.render(f"High Score:{highscore}",True,(0,0,0))
         screen.blit(highscore_show,(10,30))
+
+        level_show=font.render(f"Level:{level}  Speed: {speed}",True,(0,0,0))
+        screen.blit(level_show,(10,50))
 
         if gameover:
             gameover_show=font.render(f"Game Over",True,(0,0,0))

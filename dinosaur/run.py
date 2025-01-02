@@ -13,14 +13,18 @@ img_dinorun=[pygame.image.load("DinoRun1.png"),pygame.image.load("DinoRun2.png")
 img_dinoduck=[pygame.image.load("DinoDuck1.png"),pygame.image.load("DinoDuck2.png")]
 img_birdrun=[pygame.image.load("Bird1.png"),pygame.image.load("Bird2.png")]
 img_dino=pygame.transform.scale(img_dino,(90,90))#原本是(100,100)
+
 img_bird=pygame.image.load("Bird1.png")
 img_track=pygame.image.load("track.png")
+img_missile=pygame.image.load("missile.png")
+img_missile=pygame.transform.scale(img_missile,(90,45))
 #設定角色
 dino_rect=img_dino.get_rect()
 dino_rect.x=50#座標
 dino_rect.y=300
 is_jumping=False
 is_ducking=False
+attack=False
 jump=20#跳高度 原本是12
 g=1
 nowjump=jump
@@ -36,6 +40,10 @@ bird_rect.x=2400
 bird_rect.y=250
 initspeed=5
 speed=initspeed
+
+missile_rect=img_missile.get_rect()
+missile_rect.x=dino_rect.x+50
+missile_rect.y=dino_rect.y+20
 
 #設定分數
 score=0
@@ -69,6 +77,10 @@ while running:
                     cactus_rect.x=1500#老師設2000
                     bird_rect.x=2000
                     gameover=False
+                if event.key==pygame.K_v:
+                    attack = True
+                    missile_rect.y=dino_rect.y+20
+                    missile_rect.x=dino_rect.x+50
                 if event.key==pygame.K_UP:
                     is_jumping=True
                 if event.key==pygame.K_DOWN:
@@ -94,9 +106,11 @@ while running:
 
         if is_jumping:
             dino_rect.y-=nowjump
+            #missile_rect.y=dino_rect.y+20#跟著恐龍
             nowjump-=g
             if dino_rect.y>300:
                 dino_rect.y=300
+                missile_rect.y=dino_rect.y+20
                 nowjump=jump
                 is_jumping=False
 
@@ -116,9 +130,9 @@ while running:
             if score>highscore:
                 highscore=score
             gameover=True
+            speed=initspeed
 
         
-
         if score>3000:
             speed = speedlist[3]
             level = 3
@@ -146,6 +160,16 @@ while running:
 
         level_show=font.render(f"Level:{level}  Speed: {speed}",True,(0,0,0))
         screen.blit(level_show,(10,50))
+
+        if attack:
+            missile_rect.x+=5
+            screen.blit(img_missile,(missile_rect.x,missile_rect.y))
+            if missile_rect.colliderect(cactus_rect):
+                cactus_rect.x= random.randint(1280, 3000)
+                missile_rect.x=1280
+            if missile_rect.colliderect(bird_rect):
+                bird_rect.x= random.randint(1280, 3000)
+                missile_rect.x=1280
 
         if gameover:
             gameover_show=font.render(f"Game Over",True,(0,0,0))
